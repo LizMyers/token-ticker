@@ -1,8 +1,8 @@
-# Token Ticker 🦞
+# TokenTicker 🦞
 
 ![Token Ticker Widget](screenshot.png)
 
-A tiny macOS desktop widget that shows your OpenClaw token usage at a glance.
+Monitor your Molty's API Useage at a Glance. All you need to do is install it where your ~/.openclaw folder lives.
 
 ## Install
 
@@ -13,30 +13,50 @@ swift build -c release
 cp .build/release/TokenTicker /Applications/
 ```
 
-Launch with Spotlight (Cmd+Space → TokenTicker).
+Launch with Spotlight: **Cmd+Space** → `TokenTicker`
 
-## Requirements
+**Requires:** macOS 13+ and [OpenClaw](https://openclaw.ai)
 
-- macOS 13+
-- [OpenClaw](https://openclaw.ai) installed
+---
 
-## How it works
+## How It Works
 
-Token Ticker polls OpenClaw's session manager every 60 seconds:
+Reads from `openclaw sessions status` every 60 seconds. No API keys needed — it uses your existing setup.
 
-```bash
-openclaw sessions status
-# Returns: 168k/200k (84%)
+---
+
+## Make It Your Own
+
+All visual tweaks live in `ContentView.swift`:
+
+**Font size & weight:**
+```swift
+.font(.system(size: 42, weight: .light))  // percentage display
+.font(.system(size: 13, weight: .medium)) // labels
 ```
 
-The widget parses the context line and displays:
-- **Percentage** — large, at a glance
-- **Lobster** — flips upside down when usage is rising
-- **Model name** — which API you're tracking
-- **Token count** — exact numbers (e.g., 168k/200k)
+**Spacing:**
+```swift
+.padding(.top, 23)
+.padding(.bottom, 26)
+.padding(.leading, 20)
+```
 
-No API keys to configure. It just reads your existing OpenClaw session data.
+**Widget size:**
+```swift
+.frame(width: 160, height: 160)
+```
+
+**Refresh interval** (in `TokenDataProvider.swift`):
+```swift
+Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
+```
+
+---
+
+## Why TokenTicker?
+If tokens are the new currency, then we want to monitor them. Upcoming version will include a stock watch list type interface where users can monitor several API keys or token balances at once. Think percentages with directional arrows indicating increasing v. decreasing funds in real time.
 
 ## License
 
-MIT
+MIT — Liz Myers
