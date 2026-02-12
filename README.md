@@ -6,11 +6,9 @@
 ![OpenClaw](https://img.shields.io/badge/Requires-OpenClaw-coral)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Genesis
+## Why TokenTicker?
 
-I kept getting surprised by API limits mid-conversation. So I built a tiny desktop widget that sits in the corner and shows my token burn in real time. Now I see it coming before it hits.
-
-Sharing it in case you want the same peace of mind for your [Moltbot](https://openclaw.ai/) 🦞.
+If tokens are the new currency, then we want to monitor them. Upcoming versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
 
 ## Features
 
@@ -71,10 +69,6 @@ All visual tweaks live in `ContentView.swift`:
 ```swift
 Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 ```
-
-## What's Next
-
-Upcoming versions will offer an extended list view — monitor several API keys at once with directional indicators showing balances rising or falling in real time.
 
 ## Credits
 
