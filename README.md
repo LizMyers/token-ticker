@@ -8,7 +8,7 @@
 
 ## Why TokenTicker?
 
-If tokens are the new currency, then we want to monitor them. Upcoming versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
+Tokens are the new currency and it's handy to monitor them! Just like a stock ticker. In fact, future versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
 
 ## Features
 
@@ -73,6 +73,8 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 ## Credits
 
 Built by [Liz Myers](https://github.com/LizMyers) & [Claude](https://claude.ai), for the [OpenClaw](https://openclaw.ai/) community.
+
+---
 
 ## License
 
