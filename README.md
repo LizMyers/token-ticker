@@ -1,4 +1,4 @@
-# TokenTicker 🦞
+# TokenTicker for Your Moltbot 🦞
 
 ![Token Ticker Widget](screenshot.png)
 
