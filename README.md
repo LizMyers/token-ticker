@@ -74,7 +74,6 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 
 Built by [Liz Myers](https://github.com/LizMyers) & [Claude](https://claude.ai), for the [OpenClaw](https://openclaw.ai/) community.
 
----
 
 ## License
 
