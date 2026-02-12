@@ -22,7 +22,20 @@ Launch with Spotlight (Cmd+Space → TokenTicker).
 
 ## How it works
 
-Reads from `openclaw sessions` and refreshes every 60 seconds. The lobster flips when usage goes up.
+Token Ticker polls OpenClaw's session manager every 60 seconds:
+
+```bash
+openclaw sessions status
+# Returns: 168k/200k (84%)
+```
+
+The widget parses the context line and displays:
+- **Percentage** — large, at a glance
+- **Lobster** — flips upside down when usage is rising
+- **Model name** — which API you're tracking
+- **Token count** — exact numbers (e.g., 168k/200k)
+
+No API keys to configure. It just reads your existing OpenClaw session data.
 
 ## License
 
