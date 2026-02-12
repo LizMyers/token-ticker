@@ -10,7 +10,7 @@ If tokens are the new currency, then we want to monitor them. Upcoming versions 
 
 ## What It Does
 
-Monitor your AI agent's token usage at a glance. Install it on the machine where OpenClaw runs.
+Monitors your Molt-Bots token usage at a glance. Install it on the machine running OpenClaw.
 
 Reads from `openclaw sessions status` every 60 seconds. No API keys needed — it uses your existing setup.
 
@@ -62,4 +62,4 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 
 ## License
 
-MIT — Liz Myers
+MIT — Liz Myers and Claude
