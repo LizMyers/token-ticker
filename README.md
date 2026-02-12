@@ -2,7 +2,19 @@
 
 ![Token Ticker Widget](screenshot.png)
 
-Monitor your Molty's API Useage at a Glance. All you need to do is install it where your ~/.openclaw folder lives.
+## Why TokenTicker?
+
+If tokens are the new currency, then we want to monitor them. Upcoming versions will include a stock watchlist-style interface where users can monitor several API keys or token balances at once. Think percentages with directional indicators showing funds rising or falling in real time.
+
+---
+
+## What It Does
+
+Monitor your AI agent's token usage at a glance. Install it on the machine where OpenClaw runs.
+
+Reads from `openclaw sessions status` every 60 seconds. No API keys needed — it uses your existing setup.
+
+---
 
 ## Install
 
@@ -16,12 +28,6 @@ cp .build/release/TokenTicker /Applications/
 Launch with Spotlight: **Cmd+Space** → `TokenTicker`
 
 **Requires:** macOS 13+ and [OpenClaw](https://openclaw.ai)
-
----
-
-## How It Works
-
-Reads from `openclaw sessions status` every 60 seconds. No API keys needed — it uses your existing setup.
 
 ---
 
@@ -53,9 +59,6 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 ```
 
 ---
-
-## Why TokenTicker?
-If tokens are the new currency, then we want to monitor them. Upcoming version will include a stock watch list type interface where users can monitor several API keys or token balances at once. Think percentages with directional arrows indicating increasing v. decreasing funds in real time.
 
 ## License
 
