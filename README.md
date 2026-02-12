@@ -8,7 +8,7 @@
 
 ## Why TokenTicker?
 
-Tokens are the new currency and it's handy to monitor them -j ust like a stock ticker! Speaking of which, future versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
+Tokens are the new currency and it's handy to monitor them - just like a stock ticker! Speaking of which, future versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
 
 ## Features
 
