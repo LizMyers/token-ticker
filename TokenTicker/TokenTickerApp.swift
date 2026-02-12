@@ -29,13 +29,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Window properties
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.level = .floating
+        window.level = .normal
         window.hasShadow = false
         window.isMovableByWindowBackground = true
-        window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+        window.collectionBehavior = [.ignoresCycle]
+
+        // Create a container view with rounded corners
+        let containerView = NSView(frame: window.contentView!.bounds)
+        containerView.autoresizingMask = [.width, .height]
+        containerView.wantsLayer = true
+        containerView.layer?.cornerRadius = 22
+        containerView.layer?.masksToBounds = true
+        containerView.layer?.backgroundColor = NSColor.clear.cgColor
 
         // Visual effect background
-        let visualEffect = NSVisualEffectView(frame: window.contentView!.bounds)
+        let visualEffect = NSVisualEffectView(frame: containerView.bounds)
         visualEffect.autoresizingMask = [.width, .height]
         visualEffect.blendingMode = .behindWindow
         visualEffect.state = .active
@@ -52,25 +60,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Make hosting view transparent
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = .clear
-        hostingView.layer?.cornerRadius = 22
-        hostingView.layer?.masksToBounds = true
 
         visualEffect.addSubview(hostingView)
-        window.contentView = visualEffect
-
-        // Set window corner radius
-        window.contentView?.wantsLayer = true
-        window.contentView?.layer?.cornerRadius = 22
-        window.contentView?.layer?.masksToBounds = true
-
+        containerView.addSubview(visualEffect)
+        window.contentView = containerView
+        
         // Position and show
         window.center()
-        
-        // Round window corners
-        window.contentView?.wantsLayer = true
-        window.contentView?.layer?.cornerRadius = 22
-        window.contentView?.layer?.masksToBounds = true
-        
         window.makeKeyAndOrderFront(nil)
     }
 }
