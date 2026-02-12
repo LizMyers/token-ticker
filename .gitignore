@@ -1,6 +1,31 @@
-.DS_Store
+# Swift & Xcode
 .build/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
-DerivedData/
 .swiftpm/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+.DS_Store
+*.swiftpm
+DerivedData/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Node (if any)
+node_modules/
+npm-debug.log
+
+# Environment
+.env
+.env.local
+*.pem

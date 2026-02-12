@@ -4,42 +4,39 @@ struct ContentView: View {
     @StateObject private var dataProvider = TokenDataProvider()
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(nsColor: .systemGray).opacity(0.85))
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(dataProvider.percentage)%")
+                .font(.system(size: 42, weight: .light))
+                .opacity(0.8)
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top) {
-                    Text("\(dataProvider.percentage)%")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+            Spacer()
 
-                    Spacer()
+            Text(dataProvider.trendLobster)
+                .font(.system(size: 26))
+                .rotationEffect(.degrees(dataProvider.isRising ? 0 : 180))
+                .animation(.easeInOut(duration: 0.6), value: dataProvider.isRising)
+                .padding(.top, 8)
 
-                    Text(dataProvider.trendLobster)
-                        .font(.system(size: 32))
-                        .scaleEffect(x: dataProvider.isRising ? 1 : -1, y: 1)
-                }
+            Text("Haiku-4-5")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
 
-                Text(dataProvider.tokenDisplay)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.9))
-
-                Spacer()
-
-                Text("Haiku-4-5")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-            }
-            .padding(20)
+            Text(dataProvider.tokenDisplay)
+                .font(.system(size: 13, weight: .regular))
         }
-        .frame(width: 220, height: 160)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.top, 23)
+        .padding(.bottom, 26)
+        .padding(.leading, 20)
+        .padding(.trailing, 16)
+        .frame(width: 160, height: 160)
         .onAppear {
             dataProvider.startPolling()
         }
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
