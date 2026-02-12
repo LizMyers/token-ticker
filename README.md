@@ -23,11 +23,10 @@ git clone https://github.com/LizMyers/token-ticker.git
 cd token-ticker
 swift build -c release
 cp .build/release/TokenTicker /Applications/
-```
 
 Launch with Spotlight: **Cmd+Space** → `TokenTicker`
-`**IMPORTANT** - be sure to select the executable and NOT the folder`
-
+**IMPORTANT** - be sure to select the executable and NOT the folder
+```
 **Requires:** macOS 13+ and [OpenClaw](https://openclaw.ai)
 
 ---
