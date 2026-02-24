@@ -65,8 +65,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         containerView.addSubview(visualEffect)
         window.contentView = containerView
         
-        // Position and show
-        window.center()
+        // Restore position or center on first launch
+        window.setFrameAutosaveName("TokenTickerWindow")
+        if window.frame.origin == .zero {
+            window.center()
+        }
         window.makeKeyAndOrderFront(nil)
     }
 }

@@ -17,7 +17,7 @@ struct ContentView: View {
                 .animation(.easeInOut(duration: 0.6), value: dataProvider.isRising)
                 .padding(.top, 8)
 
-            Text("Haiku-4-5")
+            Text(dataProvider.modelName)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
 
             Text(dataProvider.tokenDisplay)
