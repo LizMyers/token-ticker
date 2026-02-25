@@ -11,6 +11,7 @@ class TokenDataProvider: ObservableObject {
 
     private var previousPercentage: Int = 0
     private var timer: Timer?
+    private var fileMonitorSource: DispatchSourceFileSystemObject?
 
     let trendLobster = "🦞"
 
@@ -22,11 +23,36 @@ class TokenDataProvider: ObservableObject {
 
     func startPolling() {
         fetchData()
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+        setupFileMonitor()
+        // Fallback poll every 10s in case file monitor misses events
+        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.fetchData()
             }
         }
+    }
+
+    private func setupFileMonitor() {
+        let sessionsPath = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".openclaw/agents/main/sessions/sessions.json").path
+        guard FileManager.default.fileExists(atPath: sessionsPath) else { return }
+
+        let fd = open(sessionsPath, O_EVTONLY)
+        guard fd >= 0 else { return }
+
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend],
+            queue: .global(qos: .utility)
+        )
+        source.setEventHandler { [weak self] in
+            Task { @MainActor in
+                self?.fetchData()
+            }
+        }
+        source.setCancelHandler { close(fd) }
+        source.resume()
+        fileMonitorSource = source
     }
 
     func fetchData() {
@@ -44,47 +70,68 @@ class TokenDataProvider: ObservableObject {
     }
 
     private func getTokenUsage() -> (current: Int, limit: Int, percentage: Int, model: String)? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["openclaw", "sessions"]
+        let openclawDir = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".openclaw/agents")
+        guard let agentDirs = try? FileManager.default.contentsOfDirectory(
+            at: openclawDir, includingPropertiesForKeys: nil
+        ) else { return nil }
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
+        var best: (current: Int, limit: Int, percentage: Int, model: String, lastModified: Date)?
 
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            print("Failed to run openclaw: \(error)")
-            return nil
-        }
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else { return nil }
-
-        // Parse model name and "20k/200k (10%)" from sessions output
-        // Format: "claude-opus-4-6 20k/200k (10%)"
-        let pattern = "(\\S+)\\s+(\\d+)k/(\\d+)k \\((\\d+)%\\)"
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
-
-        let range = NSRange(output.startIndex..., in: output)
-        if let match = regex.firstMatch(in: output, range: range) {
-            guard let modelRange = Range(match.range(at: 1), in: output),
-                  let currentRange = Range(match.range(at: 2), in: output),
-                  let limitRange = Range(match.range(at: 3), in: output),
-                  let percentRange = Range(match.range(at: 4), in: output),
-                  let current = Int(output[currentRange]),
-                  let limit = Int(output[limitRange]),
-                  let percent = Int(output[percentRange]) else {
-                return nil
+        for agentDir in agentDirs {
+            let sessionsFile = agentDir.appendingPathComponent("sessions/sessions.json")
+            guard let data = try? Data(contentsOf: sessionsFile),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                continue
             }
 
-            let rawModel = String(output[modelRange])
-            let displayName = formatModelName(rawModel)
-            return (current * 1000, limit * 1000, percent, displayName)
+            for (_, value) in json {
+                guard let sessionInfo = value as? [String: Any],
+                      let model = sessionInfo["model"] as? String,
+                      let totalTokens = sessionInfo["totalTokens"] as? Int,
+                      let contextTokens = sessionInfo["contextTokens"] as? Int,
+                      let sessionFile = sessionInfo["sessionFile"] as? String else {
+                    continue
+                }
+
+                // Prefer modelOverride (user's chosen model), then last JSONL message, then default
+                let actualModel = (sessionInfo["modelOverride"] as? String)
+                    ?? lastModelFromJSONL(path: sessionFile)
+                    ?? model
+
+                let percent = contextTokens > 0 ? Int(Double(totalTokens) / Double(contextTokens) * 100) : 0
+
+                // Pick most recently modified session
+                let sessionURL = URL(fileURLWithPath: sessionFile)
+                let modDate = (try? sessionURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+
+                if best == nil || modDate > best!.lastModified {
+                    best = (totalTokens, contextTokens, percent, formatModelName(actualModel), modDate)
+                }
+            }
         }
-        return nil
+
+        guard let result = best else { return nil }
+        return (result.current, result.limit, result.percentage, result.model)
+    }
+
+    /// Read the model name from the last assistant message in a session JSONL file.
+    private func lastModelFromJSONL(path: String) -> String? {
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+              let content = String(data: data, encoding: .utf8) else { return nil }
+
+        var lastModel: String?
+        for line in content.components(separatedBy: "\n") where !line.isEmpty {
+            guard let lineData = line.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else {
+                continue
+            }
+            if let message = obj["message"] as? [String: Any],
+               let model = message["model"] as? String {
+                lastModel = model
+            }
+        }
+        return lastModel
     }
 
     private func formatModelName(_ raw: String) -> String {
