@@ -1,6 +1,6 @@
 # TokenTicker for Your Moltbot 🦞
 
-![Token Ticker Widget](screenshot.png)
+![Token Ticker Widget](meter-widgets-v1.2.png)
 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-blue)
 ![OpenClaw](https://img.shields.io/badge/Requires-OpenClaw-coral)
