@@ -7,7 +7,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(dataProvider.percentage)%")
                 .font(.system(size: 42, weight: .light))
-                .opacity(0.8)
+                .foregroundColor(.white)
 
             Spacer()
 
@@ -19,9 +19,11 @@ struct ContentView: View {
 
             Text(dataProvider.modelName)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundColor(.white)
 
             Text(dataProvider.tokenDisplay)
                 .font(.system(size: 13, weight: .regular))
+                .foregroundColor(.white)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.top, 23)

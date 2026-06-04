@@ -160,6 +160,9 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 
 ## Changelog
 
+### v1.3
+- **Light mode fix: updated background styling.** Widget now uses a semi-transparent black background with white text in both light and dark modes, matching macOS Weather widget aesthetic. Removed frosted glass effect for cleaner appearance.
+
 ### v1.2
 - **Fix: model display now tracks the actual model in use.** Reads `modelOverride` from OpenClaw session data instead of shelling out to `openclaw sessions`, so switching models (e.g. Haiku to Gemma) updates correctly.
 - **Session sorting by recency.** When multiple sessions exist, picks the most recently active one.

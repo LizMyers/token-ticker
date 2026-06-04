@@ -12,8 +12,10 @@ struct TokenTickerApp: App {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
+    private var appearanceObservation: NSKeyValueObservation?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -34,42 +36,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.isMovableByWindowBackground = true
         window.collectionBehavior = [.ignoresCycle]
 
-        // Create a container view with rounded corners
+        // Create a container view with rounded corners and solid translucent background
         let containerView = NSView(frame: window.contentView!.bounds)
         containerView.autoresizingMask = [.width, .height]
         containerView.wantsLayer = true
         containerView.layer?.cornerRadius = 22
         containerView.layer?.masksToBounds = true
-        containerView.layer?.backgroundColor = NSColor.clear.cgColor
 
-        // Visual effect background
-        let visualEffect = NSVisualEffectView(frame: containerView.bounds)
-        visualEffect.autoresizingMask = [.width, .height]
-        visualEffect.blendingMode = .behindWindow
-        visualEffect.state = .active
-        visualEffect.material = .sidebar
-        visualEffect.wantsLayer = true
-        visualEffect.layer?.cornerRadius = 22
-        visualEffect.layer?.masksToBounds = true
+        // Set initial background based on appearance
+        updateBackgroundForAppearance(containerView: containerView)
+
+        // Observe appearance changes
+        appearanceObservation = NSApp.observe(\.effectiveAppearance) { [weak self, weak containerView] _, _ in
+            Task { @MainActor in
+                if let containerView = containerView {
+                    self?.updateBackgroundForAppearance(containerView: containerView)
+                }
+            }
+        }
 
         // SwiftUI content
         let hostingView = NSHostingView(rootView: ContentView())
-        hostingView.frame = visualEffect.bounds
+        hostingView.frame = containerView.bounds
         hostingView.autoresizingMask = [.width, .height]
 
         // Make hosting view transparent
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = .clear
 
-        visualEffect.addSubview(hostingView)
-        containerView.addSubview(visualEffect)
+        containerView.addSubview(hostingView)
         window.contentView = containerView
-        
+
         // Restore position or center on first launch
         window.setFrameAutosaveName("TokenTickerWindow")
         if window.frame.origin == .zero {
             window.center()
         }
         window.makeKeyAndOrderFront(nil)
+    }
+
+    private func updateBackgroundForAppearance(containerView: NSView) {
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+
+        if isDark {
+            // Dark mode: pure black (#000) semi-transparent background
+            containerView.layer?.backgroundColor = NSColor(white: 0.0, alpha: 0.3).cgColor
+        } else {
+            // Light mode: dark background like Weather widget (white text on dark)
+            containerView.layer?.backgroundColor = NSColor(white: 0.0, alpha: 0.3).cgColor
+        }
     }
 }
