@@ -160,6 +160,9 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 
 ## Changelog
 
+### v1.4
+- **Apple-style frosted glass effect.** Widget now uses NSVisualEffectView with blur material to match macOS Weather widget aesthetic. Features forced dark appearance with desktop wallpaper blur in both light and dark modes.
+
 ### v1.3
 - **Light mode fix: updated background styling.** Widget now uses a semi-transparent black background with white text in both light and dark modes, matching macOS Weather widget aesthetic. Removed frosted glass effect for cleaner appearance.
 
