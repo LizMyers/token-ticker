@@ -1,6 +1,6 @@
-# TokenTicker 🦞
+# TokenTicker for Your Moltbot 🦞
 
-![Token Ticker Widget](screenshot.png)
+![Token Ticker Widget](meter-widgets-v1.2.png)
 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-blue)
 ![OpenClaw](https://img.shields.io/badge/Requires-OpenClaw-coral)
@@ -8,7 +8,7 @@
 
 ## Why TokenTicker?
 
-Tokens are the new currency and it's handy to monitor them -j ust like a stock ticker! Speaking of which, future versions will offer an extended list view where you can monitor several API keys at once. Think percentages with directional indicators showing token balances rising or falling in real time.
+Tokens are the new currency and it's handy to monitor them, right from your desktop!
 
 ## Features
 
@@ -87,6 +87,50 @@ launchctl unload ~/Library/LaunchAgents/com.liz.token-ticker.plist
 
 To re-enable, run the `load` command again. Token Ticker remembers its window position between restarts.
 
+## Start on Login
+
+Want Token Ticker waiting for you every morning? Add a LaunchAgent:
+
+```bash
+# Create the plist (update the path to match your setup)
+cat > ~/Library/LaunchAgents/com.liz.token-ticker.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.liz.token-ticker</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/YOUR/PATH/TO/token-ticker/.build/release/TokenTicker</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>
+EOF
+
+# Enable it
+launchctl load ~/Library/LaunchAgents/com.liz.token-ticker.plist
+```
+
+**Note:** The `EnvironmentVariables` section ensures Token Ticker can find `openclaw` when launching at login. Without it, the widget will appear empty.
+
+To disable auto-launch later:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.liz.token-ticker.plist
+```
+
+To re-enable, run the `load` command again. Token Ticker remembers its window position between restarts.
+
 ## Make It Your Own
 
 All visual tweaks live in `ContentView.swift`:
@@ -120,6 +164,7 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 - **Fix: model display now tracks the actual model in use.** Reads `modelOverride` from OpenClaw session data instead of shelling out to `openclaw sessions`, so switching models (e.g. Haiku to Gemma) updates correctly.
 - **Session sorting by recency.** When multiple sessions exist, picks the most recently active one.
 - **No more subprocess.** Reads `~/.openclaw/agents/` directly — faster and more reliable.
+
 
 ### v1.1
 - **Dynamic model name** — The widget now reads the active model from `openclaw sessions` instead of displaying a hardcoded name. Supports Claude, GPT, and other model naming conventions.
