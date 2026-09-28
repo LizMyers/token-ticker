@@ -34,58 +34,15 @@ Launch with Spotlight: **Cmd+Space** → `TokenTicker`<br>
 ## How It Works
 
 ```
-TokenTicker              OpenClaw (local files)
-┌──────────┐            ┌──────────────────────┐
-│  Widget  │──read──────│ ~/.openclaw/agents/   │
-│  (60s)   │◀─sessions──│   sessions.json       │
-└──────────┘            └──────────────────────┘
+TokenTicker              openclaw CLI              OpenClaw (local)
+┌──────────┐            ┌──────────────┐          ┌─────────────────┐
+│  Widget  │──run───────│ openclaw     │──reads───│ session state    │
+│  (60s)   │◀─json──────│ sessions     │          │ (SQLite-backed)  │
+└──────────┘            │ --json       │          └─────────────────┘
+                         └──────────────┘
 ```
 
-Reads session data directly from `~/.openclaw/agents/` — no subprocess needed.
-
-## Start on Login
-
-Want Token Ticker waiting for you every morning? Add a LaunchAgent:
-
-```bash
-# Create the plist (update the path to match your setup)
-cat > ~/Library/LaunchAgents/com.liz.token-ticker.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.liz.token-ticker</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/YOUR/PATH/TO/token-ticker/.build/release/TokenTicker</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <false/>
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-    </dict>
-</dict>
-</plist>
-EOF
-
-# Enable it
-launchctl load ~/Library/LaunchAgents/com.liz.token-ticker.plist
-```
-
-**Note:** The `EnvironmentVariables` section ensures Token Ticker can find `openclaw` when launching at login. Without it, the widget will appear empty.
-
-To disable auto-launch later:
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.liz.token-ticker.plist
-```
-
-To re-enable, run the `load` command again. Token Ticker remembers its window position between restarts.
+Shells out to `openclaw sessions --json` for live session data, all local — no network calls. This used to read `~/.openclaw/agents/*/sessions/sessions.json` directly, but OpenClaw migrated session storage into a SQLite-backed store and that flat file no longer exists on current installs, so the direct-read approach silently broke. The CLI is the stable interface regardless of what's underneath.
 
 ## Start on Login
 
@@ -159,6 +116,11 @@ Timer.scheduledTimer(withTimeInterval: 60, repeats: true)  // seconds
 ```
 
 ## Changelog
+
+### v1.5
+- **Fix: widget froze on stale/default token counts.** OpenClaw migrated session storage from a flat `~/.openclaw/agents/*/sessions/sessions.json` file into a SQLite-backed store; that file no longer exists on current OpenClaw installs, so the v1.2 direct-file-read change always silently failed. Back to shelling out to `openclaw sessions --json` — the stable interface regardless of what's underneath — this time reading it correctly.
+- **Fix: widget could float above whatever app you were using.** Launch no longer steals keyboard focus (`orderFront` instead of `makeKeyAndOrderFront`).
+- **Darker, less transparent background** by default.
 
 ### v1.4
 - **Apple-style frosted glass effect.** Widget now uses NSVisualEffectView with blur material to match macOS Weather widget aesthetic. Features forced dark appearance with desktop wallpaper blur in both light and dark modes.
