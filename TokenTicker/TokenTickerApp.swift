@@ -31,11 +31,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Window properties
         window.isOpaque = false
         window.backgroundColor = .clear
-        // Sit just above the desktop icons and below every normal app window — a true
-        // desktop-widget layer, same technique apps like Übersicht use. `.normal` (the
-        // previous value) put it at the same level as regular app windows, so it competed
-        // for front-of-stack and could end up floating over whatever you were working in.
-        window.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
+        // Reverted Sep 28: the desktop-icon layer only renders when nothing else covers
+        // that screen region, so with any normal window over that spot the widget vanished
+        // entirely — worse than the original "floats above" complaint. Back to .normal;
+        // the orderFront-not-makeKey change below (which stops focus-stealing at launch)
+        // stays, since that part was an unambiguous improvement.
+        window.level = .normal
         window.hasShadow = false
         window.isMovableByWindowBackground = true
         window.collectionBehavior = [.ignoresCycle]
@@ -46,24 +47,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         containerView.wantsLayer = true
         containerView.layer?.cornerRadius = 22
         containerView.layer?.masksToBounds = true
-        containerView.layer?.opacity = 0.85  // Add overall transparency
+        containerView.layer?.opacity = 0.97  // Was 0.85 — matches molty-meter's darker look
 
         // Visual effect view for background blur (like Apple widgets)
         let visualEffect = NSVisualEffectView(frame: containerView.bounds)
         visualEffect.autoresizingMask = [.width, .height]
         visualEffect.blendingMode = .behindWindow
         visualEffect.state = .active
-        visualEffect.material = .menu  // Lighter blur
+        visualEffect.material = .hudWindow  // Was .menu — matches molty-meter's darker look
         visualEffect.appearance = NSAppearance(named: .darkAqua)  // Force dark appearance
         visualEffect.wantsLayer = true
         visualEffect.layer?.cornerRadius = 22
         visualEffect.layer?.masksToBounds = true
 
-        // Lighten overlay to dial down darkness
+        // Darkening overlay — was a white 0.2-alpha "lighten" layer; flipped to black
+        // to match molty-meter's darker look (Liz's preferred style, applied to both).
         let lightenOverlay = NSView(frame: visualEffect.bounds)
         lightenOverlay.autoresizingMask = [.width, .height]
         lightenOverlay.wantsLayer = true
-        lightenOverlay.layer?.backgroundColor = NSColor(white: 1.0, alpha: 0.2).cgColor
+        lightenOverlay.layer?.backgroundColor = NSColor(white: 0.0, alpha: 0.35).cgColor
         visualEffect.addSubview(lightenOverlay)
 
         // SwiftUI content
