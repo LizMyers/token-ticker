@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import CoreGraphics
 
 @main
 struct TokenTickerApp: App {
@@ -30,7 +31,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Window properties
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.level = .normal
+        // Sit just above the desktop icons and below every normal app window — a true
+        // desktop-widget layer, same technique apps like Übersicht use. `.normal` (the
+        // previous value) put it at the same level as regular app windows, so it competed
+        // for front-of-stack and could end up floating over whatever you were working in.
+        window.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
         window.hasShadow = false
         window.isMovableByWindowBackground = true
         window.collectionBehavior = [.ignoresCycle]
@@ -79,6 +84,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if window.frame.origin == .zero {
             window.center()
         }
-        window.makeKeyAndOrderFront(nil)
+        // orderFront (not makeKeyAndOrderFront) — a desktop widget shouldn't steal
+        // keyboard focus from whatever app you're actually using when it launches.
+        window.orderFront(nil)
     }
 }

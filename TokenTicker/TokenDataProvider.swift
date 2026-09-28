@@ -70,68 +70,47 @@ class TokenDataProvider: ObservableObject {
     }
 
     private func getTokenUsage() -> (current: Int, limit: Int, percentage: Int, model: String)? {
-        let openclawDir = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".openclaw/agents")
-        guard let agentDirs = try? FileManager.default.contentsOfDirectory(
-            at: openclawDir, includingPropertiesForKeys: nil
-        ) else { return nil }
-
-        var best: (current: Int, limit: Int, percentage: Int, model: String, lastModified: Date)?
-
-        for agentDir in agentDirs {
-            let sessionsFile = agentDir.appendingPathComponent("sessions/sessions.json")
-            guard let data = try? Data(contentsOf: sessionsFile),
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                continue
-            }
-
-            for (_, value) in json {
-                guard let sessionInfo = value as? [String: Any],
-                      let model = sessionInfo["model"] as? String,
-                      let totalTokens = sessionInfo["totalTokens"] as? Int,
-                      let contextTokens = sessionInfo["contextTokens"] as? Int,
-                      let sessionFile = sessionInfo["sessionFile"] as? String else {
-                    continue
-                }
-
-                // Prefer modelOverride (user's chosen model), then last JSONL message, then default
-                let actualModel = (sessionInfo["modelOverride"] as? String)
-                    ?? lastModelFromJSONL(path: sessionFile)
-                    ?? model
-
-                let percent = contextTokens > 0 ? Int(Double(totalTokens) / Double(contextTokens) * 100) : 0
-
-                // Pick most recently modified session
-                let sessionURL = URL(fileURLWithPath: sessionFile)
-                let modDate = (try? sessionURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
-
-                if best == nil || modDate > best!.lastModified {
-                    best = (totalTokens, contextTokens, percent, formatModelName(actualModel), modDate)
-                }
-            }
+        // Was: read ~/.openclaw/agents/*/sessions/sessions.json directly. OpenClaw migrated
+        // session state into a SQLite store (openclaw-agent.sqlite); that flat file no longer
+        // exists, so this always silently returned nil and the widget froze on stale/default
+        // numbers. The CLI is the stable interface to whatever storage is live underneath
+        // (found Sep 28, same root cause as the matching bug in molty-meter).
+        guard let json = runOpenClawSessionsJSON(),
+              let sessionsArray = json["sessions"] as? [[String: Any]],
+              let first = sessionsArray.first,
+              let model = first["model"] as? String,
+              let totalTokens = first["totalTokens"] as? Int,
+              let contextTokens = first["contextTokens"] as? Int else {
+            return nil
         }
 
-        guard let result = best else { return nil }
-        return (result.current, result.limit, result.percentage, result.model)
+        let percent = contextTokens > 0 ? Int(Double(totalTokens) / Double(contextTokens) * 100) : 0
+        // The CLI already returns sessions sorted most-recently-updated first.
+        return (totalTokens, contextTokens, percent, formatModelName(model))
     }
 
-    /// Read the model name from the last assistant message in a session JSONL file.
-    private func lastModelFromJSONL(path: String) -> String? {
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-              let content = String(data: data, encoding: .utf8) else { return nil }
+    /// Runs `openclaw sessions --json` and parses stdout. Uses the absolute Homebrew path
+    /// since GUI/LaunchAgent-launched apps don't inherit an interactive shell's PATH.
+    private func runOpenClawSessionsJSON() -> [String: Any]? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/openclaw")
+        process.arguments = ["sessions", "--json"]
 
-        var lastModel: String?
-        for line in content.components(separatedBy: "\n") where !line.isEmpty {
-            guard let lineData = line.data(using: .utf8),
-                  let obj = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else {
-                continue
-            }
-            if let message = obj["message"] as? [String: Any],
-               let model = message["model"] as? String {
-                lastModel = model
-            }
+        let stdout = Pipe()
+        process.standardOutput = stdout
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+        } catch {
+            return nil
         }
-        return lastModel
+        // Read to EOF before waiting on exit — waiting first risks a deadlock if output
+        // ever exceeds the pipe buffer (child blocks writing, parent blocks waiting).
+        let data = stdout.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        return try? JSONSerialization.jsonObject(with: data) as? [String: Any]
     }
 
     private func formatModelName(_ raw: String) -> String {
